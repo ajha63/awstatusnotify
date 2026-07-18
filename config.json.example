@@ -1,0 +1,16 @@
+{
+  "watched_regions": [
+    "us-east-1",
+    "us-east-2",
+    "us-west-2",
+    "eu-west-1"
+  ],
+  "critical_services": [
+    "ec2",
+    "rds",
+    "lambda",
+    "s3",
+    "iam",
+    "route53"
+  ]
+}

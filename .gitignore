@@ -1,0 +1,23 @@
+# Configuración local (contiene regiones/servicios específicos del entorno)
+config.json
+
+# Datos generados en runtime
+data/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# macOS
+.DS_Store
