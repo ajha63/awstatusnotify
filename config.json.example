@@ -33,5 +33,6 @@
     "dynamodb-us-east-2",
     "iam",
     "route53"
-  ]
+  ],
+  "dedup_ttl_days": 90
 }

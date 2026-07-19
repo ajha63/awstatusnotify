@@ -87,8 +87,8 @@ que deben cumplirse antes de avanzar a la siguiente.
 
 | # | ID | Título | Fase | Estado |
 |---|---|---|---|---|
-| 1 | T-09 | TTL en dedup store | Estabilidad local | ⬜ Siguiente |
-| 2 | T-10 | Retry con backoff en feeds | Estabilidad local | ⬜ Pendiente |
+| 1 | T-09 | TTL en dedup store | Estabilidad local | ✅ Completado |
+| 2 | T-10 | Retry con backoff en feeds | Estabilidad local | ⬜ Siguiente |
 | 3 | T-13 | Adapter SMTP | Notificaciones reales | ⬜ Pendiente |
 | 4 | T-11 | Notificación de resolución (opt-in) | Notificaciones reales | ⬜ Pendiente |
 | 5 | T-14 | CLI (dry-run, verbose, slug) | Operabilidad | ⬜ Pendiente |
@@ -140,4 +140,44 @@ que deben cumplirse antes de avanzar a la siguiente.
 
 ---
 
-*Esperando aprobación para comenzar T-09.*
+## Tarea activa: #2 — T-10 Retry con backoff en feeds
+
+### Descripción
+
+La descarga de feeds usa `subprocess.run(["curl", ...])` con un único intento.
+Un timeout de red transitorio descarta el feed completo para ese ciclo sin reintentarlo.
+Con 17 slugs configurados, cualquier pico de latencia genera un ciclo parcialmente vacío.
+
+### Lo que se implementará
+
+**`src/adapters/health_feed.py`**
+- Nueva función `_fetch_xml_with_retry(url, max_attempts=3, initial_delay_s=2.0)`
+- Backoff exponencial: 2s → 4s → 8s entre intentos
+- Log WARNING por cada intento fallido; log INFO al recuperarse tras fallo previo
+- `_fetch_xml` se convierte en thin wrapper de `_fetch_xml_with_retry`
+
+**`config.json.example`**
+- Nuevos campos opcionales: `"fetch_max_attempts": 3`, `"fetch_initial_delay_s": 2.0`
+
+**`tests/unit/test_health_feed_parser.py`**
+- 3 tests nuevos con mock de `subprocess.run`:
+  `test_retry_succeeds_on_second_attempt`,
+  `test_retry_exhausted_raises`,
+  `test_no_retry_on_success`
+
+**Criterios de aceptación:**
+- [ ] Máximo 3 intentos por feed antes de loguear ERROR y continuar con el siguiente slug
+- [ ] Delay exponencial verificable en tests (mock de `time.sleep`)
+- [ ] El ciclo completo no falla si un feed agota sus reintentos
+- [ ] `ruff` ✅ · `mypy --strict` ✅ · `pytest` ✅
+
+### Archivos que cambian
+- `src/adapters/health_feed.py` (nueva función + refactor de `_fetch_xml`)
+- `config.json.example` (2 campos opcionales)
+- `tests/unit/test_health_feed_parser.py` (3 tests nuevos)
+- `TASKS.md` (T-10 → ✅)
+- `WORKPLAN.md` (actualizar estado)
+
+---
+
+*Esperando aprobación para comenzar T-10.*
