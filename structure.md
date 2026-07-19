@@ -7,12 +7,13 @@ inclusion: always
 ```
 src/
   domain/                    # Python puro, sin dependencias externas
-    incident.py              # Entidad Incident (id, servicio, región, severidad, timestamp)
-    rules.py                 # ¿Es impacto masivo? ¿Es región vigilada?
+    incident.py              # Entidad Incident (id, slug, región, severidad, tipo, rca, etc.)
+    rules.py                 # is_massive_impact, is_watched_region, should_notify
   application/
     process_feed.py          # Orquesta: fetch -> parse -> evaluar -> notificar
+                             # Define protocolos FeedFetcher, DedupStore, Notifier
   adapters/
-    health_feed.py           # Adapter: lee y parsea el feed RSS/JSON de AWS (feedparser)
+    health_feed.py           # Adapter: descarga y parsea feeds RSS de status.aws.amazon.com
     json_dedup_store.py      # Adapter: deduplicación con archivo JSON local
     log_notifier.py          # Adapter: notifica escribiendo a archivo de log
   handler.py                 # Entry point del script, cablea los adapters
@@ -26,13 +27,16 @@ logs/
 references/
   regions.md                 # Lista de regiones vigiladas
   critical-services.md       # Lista de servicios considerados críticos
+  feed-slugs.md              # Catálogo de slugs RSS relevantes para monitorear
 
-config.json                  # Configuración: rutas de archivos, regiones, servicios críticos
+config.json                  # Configuración: feed_slugs, watched_regions, critical_services
+config.json.example          # Plantilla de configuración versionada
 
 .kiro/steering/              # Steering files del proyecto
+  feed-analysis.md           # Análisis técnico del feed RSS (estructura, métricas, decisiones)
 tests/
-  unit/                      # Tests del dominio, sin dependencias externas
-  integration/               # Tests de adapters (json_dedup_store, log_notifier, health_feed)
+  unit/                      # Tests del dominio y del parser RSS (sin red)
+  integration/               # Tests de adapters (json_dedup_store)
 ```
 
 > **Fase AWS (futura):** `json_dedup_store.py` → `dynamo_dedup_store.py`,
@@ -55,17 +59,23 @@ Esta separación existe para poder testear las reglas de negocio
 decisión de fuente de datos (RSS vs Health API) dentro de la lógica de
 negocio.
 
-## Modelo de dominio (mínimo)
+## Modelo de dominio (actual)
 
-- **Entidad `Incident`**: `incident_id`, `service`, `region`, `status`
-  (`open`/`resolved`), `detected_at`.
-- **Regla `is_massive_impact(incident)`**: True si afecta múltiples
-  servicios/regiones simultáneamente o un servicio crítico.
+- **Entidad `Incident`**: `incident_id` (sha256 estable), `service`,
+  `service_slug`, `region`, `status` (`open`/`resolved`), `severity`
+  (`critical`/`high`/`medium`/`low`/`info`/`resolved`), `incident_type`
+  (`disruption`/`degradation`/`error_rate`/`impact`/`performance`/
+  `informational`/`operational`/`unknown`), `title`, `raw_title`,
+  `detected_at`, `affected_regions`, `affected_azs`, `has_rca`.
+- **Regla `is_massive_impact(incident)`**: True si severidad es CRITICAL/HIGH,
+  o slug es `multipleservices-*`, o hay >1 región afectada, o el servicio
+  está en `references/critical-services.md`.
 - **Regla `is_watched_region(incident)`**: True si `incident.region` está
-  en `references/regions.md`.
-- **Evento de aplicación (no EventBridge de dominio, solo interno)**:
-  `IncidentShouldNotify` — se emite cuando ambas reglas anteriores se
-  cumplen y el incidente no ha sido notificado antes (según DynamoDB).
+  en `references/regions.md`, o si la región es `global`.
+- **Regla `should_notify(incident)`**: True si no está RESOLVED Y
+  (`is_massive_impact` OR `is_watched_region`).
+- **`incident_id` estable**: `sha256(<slug>:<incident_name>)[:16]` — el
+  mismo incidente lógico produce el mismo ID aunque AWS publique N updates.
 
 ## Convenciones de nombres
 

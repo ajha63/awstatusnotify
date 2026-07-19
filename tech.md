@@ -63,8 +63,10 @@ justificar el cambio con el flujo working-backwards de `product.md`.
 ## Dependencias Python permitidas
 
 **Fase local (actual):**
-- `feedparser` (parseo del feed RSS)
-- Solo stdlib para el resto: `json`, `logging`, `pathlib`, `datetime`
+- `feedparser` (parseo del feed RSS) — aunque en la práctica se usa `curl`
+  vía subprocess por problemas de SSL en Python 3.14+/macOS (ver nota SSL abajo)
+- Solo stdlib para el resto: `json`, `logging`, `pathlib`, `datetime`,
+  `subprocess`, `xml.etree.ElementTree`, `email.utils`, `hashlib`, `re`
 
 **Fase AWS (futura):**
 - `boto3` / `botocore` (SDK de AWS)
@@ -72,6 +74,18 @@ justificar el cambio con el flujo working-backwards de `product.md`.
 
 Cualquier dependencia adicional debe evaluarse antes de añadirse. En la
 fase local, priorizar stdlib para mantener el entorno simple.
+
+## Nota SSL en Python 3.14+ / macOS
+
+`urllib` y `feedparser` (cuando descarga directamente) fallan con
+`[SSL: CERTIFICATE_VERIFY_FAILED]` en Python 3.14+ sobre macOS si no están
+instalados los certificados del sistema (`/Applications/Python 3.x/Install Certificates.command`).
+
+**Solución adoptada:** `health_feed.py` usa `subprocess.run(["curl", ...])` para
+descargar el XML y luego parsea con `xml.etree.ElementTree`. Esto elimina
+la dependencia de SSL del runtime de Python y funciona en cualquier macOS con
+`curl` (que viene preinstalado). `feedparser` queda en `pyproject.toml` como
+dependencia declarada por si se necesita en el futuro o en entornos con CA bundle.
 
 ## Shell
 

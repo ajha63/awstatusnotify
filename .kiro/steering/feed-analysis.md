@@ -1,5 +1,5 @@
 ---
-inclusion: always
+inclusion: manual
 ---
 
 # Análisis del feed RSS de AWS Service Health Dashboard
