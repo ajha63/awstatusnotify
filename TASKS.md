@@ -18,7 +18,7 @@ Plan de implementación incremental. Cada tarea es una unidad de trabajo autóno
 | T-06 | Adapter `log_notifier.py` | ✅ Completado | — (main) |
 | T-07 | Caso de uso `process_feed` | ✅ Completado | — (main) |
 | T-08 | Entry point `handler.py` | ✅ Completado | — (main) |
-| T-09 | Limpieza automática del dedup store (TTL local) | ⬜ Pendiente | `feature/t09-dedup-ttl` |
+| T-09 | Limpieza automática del dedup store (TTL local) | ✅ Completado | `feature/t09-dedup-ttl` |
 | T-10 | Retry con backoff en descarga de feeds | ⬜ Pendiente | `feature/t10-feed-retry` |
 | T-11 | Notificación de resolución de incidentes | ⬜ Pendiente | `feature/t11-notify-resolved` |
 | T-12 | Descubrir slugs dinámicamente desde el índice HTML | ⬜ Pendiente | `feature/t12-slug-discovery` |

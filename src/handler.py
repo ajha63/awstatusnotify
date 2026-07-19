@@ -77,6 +77,7 @@ def main() -> None:
     critical_services: list[str] = config.get("critical_services", [])
     watched_regions: list[str] = config.get("watched_regions", [])
     feed_slugs: list[str] = config.get("feed_slugs", [])
+    dedup_ttl_days: int = int(config.get("dedup_ttl_days", 90))  # type: ignore[arg-type]
 
     if not feed_slugs:
         logger.warning("No se configuraron feed_slugs en config.json — nada que procesar")
@@ -91,7 +92,7 @@ def main() -> None:
 
     notified = process_feed(
         fetcher=_FeedFetcherAdapter(feed_slugs),
-        dedup=JsonDedupStore(),
+        dedup=JsonDedupStore(ttl_days=dedup_ttl_days),
         notifier=LogNotifier(),
         critical_services=critical_services,
         watched_regions=watched_regions,
