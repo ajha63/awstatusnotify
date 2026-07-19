@@ -19,12 +19,15 @@ class LogNotifier:
     def notify(self, incident: Incident) -> None:
         """Registra el incidente como una notificación en el log."""
         logger.warning(
-            "NOTIFICACIÓN | incident_id=%s | service=%s | region=%s"
-            " | status=%s | title=%s | detected_at=%s",
+            "NOTIFICACIÓN | id=%s | type=%s | severity=%s | status=%s"
+            " | service=%s | region=%s | rca=%s | title=%s | detected_at=%s",
             incident.incident_id,
+            incident.incident_type.value,
+            incident.severity.value,
+            incident.status.value,
             incident.service,
             incident.region,
-            incident.status.value,
+            incident.has_rca,
             incident.title,
             incident.detected_at.isoformat(),
         )

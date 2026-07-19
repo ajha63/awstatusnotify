@@ -12,5 +12,18 @@
     "s3",
     "iam",
     "route53"
+  ],
+  "feed_slugs": [
+    "ec2-us-east-1",
+    "ec2-us-east-2",
+    "ec2-us-west-2",
+    "ec2-eu-west-1",
+    "rds-us-east-1",
+    "rds-us-east-2",
+    "lambda-us-east-1",
+    "lambda-us-east-2",
+    "s3",
+    "iam",
+    "route53"
   ]
 }

@@ -60,10 +60,13 @@ def _load_config() -> dict[str, list[str]]:
 
 
 class _FeedFetcherAdapter:
-    """Adapta la función fetch_incidents al protocolo FeedFetcher."""
+    """Adapta fetch_incidents al protocolo FeedFetcher usando la lista de slugs."""
+
+    def __init__(self, slugs: list[str]) -> None:
+        self._slugs = slugs
 
     def fetch_incidents(self) -> list:  # type: ignore[type-arg]
-        return fetch_incidents()
+        return fetch_incidents(self._slugs)
 
 
 def main() -> None:
@@ -73,15 +76,21 @@ def main() -> None:
     config = _load_config()
     critical_services: list[str] = config.get("critical_services", [])
     watched_regions: list[str] = config.get("watched_regions", [])
+    feed_slugs: list[str] = config.get("feed_slugs", [])
+
+    if not feed_slugs:
+        logger.warning("No se configuraron feed_slugs en config.json — nada que procesar")
+        return
 
     logger.info(
-        "Iniciando chequeo | regiones vigiladas=%s | servicios críticos=%s",
+        "Iniciando chequeo | feeds=%d | regiones vigiladas=%s | servicios críticos=%s",
+        len(feed_slugs),
         watched_regions,
         critical_services,
     )
 
     notified = process_feed(
-        fetcher=_FeedFetcherAdapter(),
+        fetcher=_FeedFetcherAdapter(feed_slugs),
         dedup=JsonDedupStore(),
         notifier=LogNotifier(),
         critical_services=critical_services,
