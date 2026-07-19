@@ -10,10 +10,16 @@
     "rds",
     "lambda",
     "s3",
+    "dynamodb",
+    "cloudwatch",
     "iam",
     "route53"
   ],
   "feed_slugs": [
+    "multipleservices-us-east-1",
+    "multipleservices-us-east-2",
+    "multipleservices-us-west-2",
+    "multipleservices-eu-west-1",
     "ec2-us-east-1",
     "ec2-us-east-2",
     "ec2-us-west-2",
@@ -23,6 +29,8 @@
     "lambda-us-east-1",
     "lambda-us-east-2",
     "s3",
+    "dynamodb-us-east-1",
+    "dynamodb-us-east-2",
     "iam",
     "route53"
   ]
